@@ -24,7 +24,7 @@ HRSID
 import json
 import os
 import cv2
-
+from ultralytics.utils.plotting import save_one_box
 
 def read_json(json_file):
     with open(json_file, 'r') as f:
@@ -34,6 +34,7 @@ def read_json(json_file):
 
 class GenerateLabel:
     def __init__(self, json_file, current_path):
+        self.json_file = json_file
         self.current_path = current_path
         self.parent_path = os.path.dirname(current_path)
         self.data = read_json(json_file)
@@ -57,7 +58,7 @@ class GenerateLabel:
         if not os.path.exists(self.dataset_path):
             os.makedirs(self.dataset_path)
         # generate train txt
-        if "train" in json_file:
+        if "train" in self.json_file:
             with open(os.path.join(self.dataset_path, 'train.txt'), 'w') as f:
                 for i in range(len(self.data['images'])):
                     image = self.load_image(i)
@@ -86,7 +87,7 @@ class GenerateLabel:
                     height = image['height']
                     width = image['width']
                     for a in ann:
-                        category_id = a['category_id']
+                        category_id = a['category_id'] - 1
                         bbox = a['bbox']
                         x_center = bbox[0] + bbox[2] / 2
                         y_center = bbox[1] + bbox[3] / 2
@@ -96,7 +97,7 @@ class GenerateLabel:
                         bbox_height = bbox[3] / height
                         f.write(f'{category_id} {x_center} {y_center} {bbox_width} {bbox_height}\n')
 
-        if "test" in json_file:
+        if "test" in self.json_file:
             with open(os.path.join(self.dataset_path, 'test.txt'), 'w') as f:
                 for i in range(len(self.data['images'])):
                     image = self.load_image(i)
@@ -124,7 +125,7 @@ class GenerateLabel:
                     height = image['height']
                     width = image['width']
                     for a in ann:
-                        category_id = a['category_id']
+                        category_id = a['category_id'] - 1
                         bbox = a['bbox']
                         x_center = bbox[0] + bbox[2] / 2
                         y_center = bbox[1] + bbox[3] / 2
@@ -186,7 +187,7 @@ if __name__ == "__main__":
 
     gl = GenerateLabel(json_file, current_path)
 
-    # gl.generate_dataset()
+    gl.generate_dataset()
     # for i in range(len(data['images'])):
     #     if len(data['annotations'][i]['bbox']) != 4:
     #         print('error')
